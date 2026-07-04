@@ -19,7 +19,18 @@ interface FormValues {
   currency: string;
 }
 
-const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "INR", "AED"];
+const CURRENCIES = [
+  "USD",
+  "EUR",
+  "GBP",
+  "JPY",
+  "AUD",
+  "CAD",
+  "CHF",
+  "CNY",
+  "INR",
+  "AED",
+];
 
 function buildDays(start: Dayjs, end: Dayjs): TripDay[] {
   const days: TripDay[] = [];
@@ -111,8 +122,12 @@ export default function NewTripPage() {
             loading={isLoading}
             placeholder="Search countries…"
             options={countryOptions}
+            virtual={false}
+            classNames={{ popup: { root: "trip-destination-popup" } }}
             filterOption={(input, option) =>
-              (option?.searchText as string)?.toLowerCase().includes(input.toLowerCase())
+              (option?.searchText as string)
+                ?.toLowerCase()
+                .includes(input.toLowerCase())
             }
             size="large"
           />
@@ -126,6 +141,7 @@ export default function NewTripPage() {
           <RangePicker
             size="large"
             className="w-full"
+            classNames={{ popup: { root: "trip-range-popup" } }}
             disabledDate={(d) => d.isBefore(dayjs().startOf("day"))}
             format="MMM D, YYYY"
           />
@@ -154,7 +170,10 @@ export default function NewTripPage() {
         </div>
 
         <Form.Item name="notes" label="Notes (optional)">
-          <Input.TextArea rows={3} placeholder="Anything to remember about this trip…" />
+          <Input.TextArea
+            rows={3}
+            placeholder="Anything to remember about this trip…"
+          />
         </Form.Item>
 
         <button
