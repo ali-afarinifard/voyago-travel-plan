@@ -171,7 +171,7 @@ export default function NewTripPage() {
 
         <Form.Item name="notes" label="Notes (optional)">
           <Input.TextArea
-            rows={3}
+            autoSize={{ minRows: 3, maxRows: 8 }}
             placeholder="Anything to remember about this trip…"
           />
         </Form.Item>
