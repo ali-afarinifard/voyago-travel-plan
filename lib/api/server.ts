@@ -1,10 +1,5 @@
-import {
-  COUNTRIES_GRAPHQL_ENDPOINT,
-  GET_CONTINENTS,
-  GET_COUNTRIES,
-  GET_COUNTRY,
-} from "@/lib/graphql/queries";
 import { describeWeatherCode } from "@/lib/utils/weather";
+import countriesSnapshot from "@/lib/data/countries.json";
 import type {
   Continent,
   Country,
@@ -14,85 +9,66 @@ import type {
   WeatherSummary,
 } from "@/lib/types/travel";
 
-const REVALIDATE_COUNTRIES = 60 * 60 * 24;
 const REVALIDATE_WEATHER = 60 * 15;
 const REVALIDATE_RATES = 60 * 60;
 
-async function graphqlFetch<T>(
-  document: string,
-  variables?: Record<string, unknown>,
-  revalidate = REVALIDATE_COUNTRIES,
-): Promise<T> {
-  const res = await fetch(COUNTRIES_GRAPHQL_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query: document, variables }),
-    next: { revalidate },
-  });
-  if (!res.ok)
-    throw new Error(`GraphQL request failed with status ${res.status}`);
-  const json = await res.json();
-  if (json.errors?.length) throw new Error(json.errors[0].message);
-  return json.data as T;
-}
+/**
+ * Country master data (code, name, capital, currency, languages, ...) is
+ * intentionally served from a bundled local snapshot instead of a live
+ * fetch to https://countries.trevorblades.com/graphql.
+ *
+ * That endpoint is a free community demo API. It isn't reliable enough to
+ * sit on the critical path of `generateStaticParams`: during `next build`
+ * dozens of destination pages are generated concurrently, which used to
+ * trigger timeouts/rate-limiting on that API for a handful of countries.
+ * Whenever that happened, `getCountry()` silently returned `null`, the
+ * page called `notFound()`, and — because the page is statically
+ * generated — that 404 got baked into the deployed build until the next
+ * redeploy (reproducing the "/destinations/jp works locally, 404 on
+ * Vercel" bug).
+ *
+ * This data barely changes (country codes, capitals, currencies,
+ * languages), so reading it from disk removes the flaky network
+ * dependency entirely for this critical path. Regenerate the snapshot
+ * with `node scripts/generate-countries-snapshot.mjs` if it ever needs a
+ * refresh.
+ */
+const COUNTRIES = countriesSnapshot as Country[];
+const COUNTRY_BY_CODE = new Map(COUNTRIES.map((c) => [c.code, c]));
 
 export async function getAllCountries(): Promise<Country[]> {
-  try {
-    const data = await graphqlFetch<{ countries: Country[] }>(GET_COUNTRIES);
-    return data.countries;
-  } catch {
-    return [];
-  }
+  return COUNTRIES;
 }
 
 export async function getCountry(code: string): Promise<Country | null> {
-  try {
-    const data = await graphqlFetch<{ country: Country | null }>(GET_COUNTRY, {
-      code,
-    });
-    return data.country;
-  } catch {
-    return null;
-  }
+  return COUNTRY_BY_CODE.get(code.toUpperCase()) ?? null;
 }
 
 export async function getContinents(): Promise<Continent[]> {
-  try {
-    const data = await graphqlFetch<{ continents: Continent[] }>(
-      GET_CONTINENTS,
-    );
-    return data.continents;
-  } catch {
-    return [];
+  const seen = new Map<string, Continent>();
+  for (const country of COUNTRIES) {
+    if (!seen.has(country.continent.code)) {
+      seen.set(country.continent.code, country.continent);
+    }
   }
+  return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getCountryDetails(
   code: string,
 ): Promise<CountryDetails | null> {
-  try {
-    const res = await fetch(`https://flag.vercel.app/api/${code}`, {
-      next: { revalidate: REVALIDATE_COUNTRIES },
-    });
-
-    const coords = COUNTRY_COORDS[code.toUpperCase()];
-
-    return {
-      latlng: coords ?? null,
-      flagPng: `https://flagcdn.com/w320/${code.toLowerCase()}.png`,
-      flagAlt: `Flag of ${code}`,
-      population: null,
-      subregion: null,
-    };
-  } catch {
-    return {
-      latlng: COUNTRY_COORDS[code.toUpperCase()] ?? null,
-      flagPng: `https://flagcdn.com/w320/${code.toLowerCase()}.png`,
-      flagAlt: `Flag of ${code}`,
-      population: null,
-      subregion: null,
-    };
-  }
+  // Coordinates come from a local lookup table and the flag URL is just a
+  // predictable flagcdn.com path — there was never a real reason for this
+  // to be a network call. (Previously it fetched flag.vercel.app and threw
+  // the response away, which only added latency and another point of
+  // failure for no benefit.)
+  return {
+    latlng: COUNTRY_COORDS[code.toUpperCase()] ?? null,
+    flagPng: `https://flagcdn.com/w320/${code.toLowerCase()}.png`,
+    flagAlt: `Flag of ${code}`,
+    population: null,
+    subregion: null,
+  };
 }
 
 const COUNTRY_COORDS: Record<string, [number, number]> = {

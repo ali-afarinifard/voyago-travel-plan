@@ -22,9 +22,15 @@ interface CountriesByContinentResponse {
 
 export const countriesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /** All countries — GraphQL. Used by the Explore grid and search. */
+    /**
+     * All countries. Served from our own /api/countries route (which reads
+     * the bundled local snapshot) rather than calling
+     * countries.trevorblades.com directly from the browser — same
+     * reliability reasoning as the server-side data layer. Used by the
+     * Explore grid, search, and the "new trip" destination picker.
+     */
     getCountries: builder.query<Country[], void>({
-      query: () => ({ type: "graphql", document: GET_COUNTRIES }),
+      query: () => ({ type: "rest", url: "/api/countries" }),
       transformResponse: (response: CountriesResponse) => response.countries,
       providesTags: (result) =>
         result
@@ -37,7 +43,11 @@ export const countriesApi = baseApi.injectEndpoints({
 
     /** Single country by ISO code — GraphQL. Used by the destination detail page. */
     getCountry: builder.query<Country | null, string>({
-      query: (code) => ({ type: "graphql", document: GET_COUNTRY, variables: { code } }),
+      query: (code) => ({
+        type: "graphql",
+        document: GET_COUNTRY,
+        variables: { code },
+      }),
       transformResponse: (response: CountryResponse) => response.country,
       providesTags: (_result, _error, code) => [{ type: "Country", id: code }],
     }),
