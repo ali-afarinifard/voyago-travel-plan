@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Send, Wallet } from "lucide-react";
 import dayjs from "dayjs";
