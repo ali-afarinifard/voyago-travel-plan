@@ -54,7 +54,7 @@ export function TripCard({ trip }: { trip: Trip }) {
           </span>
           <span className="flex items-center gap-1.5">
             <Wallet size={14} className="text-(--color-secondary)" aria-hidden="true" />
-            Budget {trip.budget.toLocaleString()} {trip.currency}
+            Budget - {trip.budget.toLocaleString()} {trip.currency}
           </span>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function TripCard({ trip }: { trip: Trip }) {
           type="button"
           aria-label={`Delete trip to ${trip.destinationName}`}
           onClick={() => dispatch(deleteTrip({ tripId: trip.id }))}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-(--color-foreground)/40 transition-colors hover:bg-(--color-terracotta)/10 hover:text-(--color-terracotta)"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-(--color-foreground)/40 transition-colors hover:bg-(--color-terracotta)/10 hover:text-(--color-terracotta) cursor-pointer"
         >
           <Trash2 size={15} aria-hidden="true" />
         </button>

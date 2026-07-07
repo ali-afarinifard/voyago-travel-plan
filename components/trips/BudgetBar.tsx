@@ -36,7 +36,7 @@ export function BudgetBar({ trip }: { trip: Trip }) {
         strokeColor={
           overBudget ? "var(--color-terracotta)" : "var(--color-primary)"
         }
-        trailColor="var(--color-border)"
+        railColor="var(--color-border)"
         className="mt-3"
         showInfo={false}
       />

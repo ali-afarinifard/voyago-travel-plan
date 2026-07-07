@@ -64,7 +64,7 @@ export function ActivityModal({ open, onClose, onSave, initial }: ActivityModalP
       onOk={handleOk}
       title={initial ? "Edit activity" : "Add activity"}
       okText={initial ? "Save changes" : "Add"}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" className="mt-4" requiredMark={false}>
         <Form.Item

@@ -179,7 +179,7 @@ export default function NewTripPage() {
         <button
           type="submit"
           disabled={saving}
-          className="mt-2 w-full rounded-full bg-(--color-primary) py-3 text-sm font-semibold text-(--color-primary-foreground) transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="mt-2 w-full rounded-full bg-(--color-primary) py-3 text-sm font-semibold text-(--color-primary-foreground) transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
         >
           {saving ? "Saving…" : "Create trip"}
         </button>
